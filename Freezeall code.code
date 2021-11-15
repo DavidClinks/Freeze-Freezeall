@@ -1,0 +1,69 @@
+//This code was made by Dav#7747 pls dont sell it
+
+//Open player.h
+
+//find int skinColor = 0x8295C3FF;
+
+//put it on it
+long long freezetime = 0;
+
+//example:
+long long freezetime = 0;
+int skinColor = 0x8295C3FF;
+
+
+
+//Next open tile.h
+
+//find else if (str.substr(0, 6) == "/pull ") {
+
+//put it on it
+else if (str == "/freezeall") {
+			int howmuch = 0;
+			for (ENetPeer* currentPeer = server->peers; currentPeer < &server->peers[server->peerCount]; ++currentPeer) {
+				if (currentPeer->state != ENET_PEER_STATE_CONNECTED || currentPeer->data == NULL) continue;
+					if (isHere(peer, currentPeer) && static_cast<PlayerInfo*>(currentPeer->data)->rawName != static_cast<PlayerInfo*>(peer->data)->rawName)
+					{
+						try {
+							if (!static_cast<PlayerInfo*>(currentPeer->data)->frozen)
+							{
+								GamePacket p2 = packetEnd(appendIntx(appendString(createPacket(), "OnSetFreezeState"), 1));
+								memcpy(p2.data + 8, &(((PlayerInfo*)(currentPeer->data))->netID), 4);
+								ENetPacket* packet2 = enet_packet_create(p2.data, p2.len, ENET_PACKET_FLAG_RELIABLE);
+								enet_peer_send(currentPeer, 0, packet2);
+								delete p2.data;
+								static_cast<PlayerInfo*>(currentPeer->data)->skinColor = -120000;
+								sendClothes(currentPeer);
+
+								Player::OnTextOverlay(currentPeer, "`oYou have been `1frozen `oby a mod.");
+								Player::OnConsoleMessage(currentPeer, "`oThere are so icy right i am so cold now!? (`oFrozen mod added! 30 Seconds Left`o)");
+								static_cast<PlayerInfo*>(currentPeer->data)->frozen = true;
+								static_cast<PlayerInfo*>(currentPeer->data)->freezetime = GetCurrentTimeInternalSeconds() + 30;
+								Player::PlayAudio(currentPeer, "audio/freeze.wav", 0);
+							}
+							else
+							{
+								GamePacket p2 = packetEnd(appendIntx(appendString(createPacket(), "OnSetFreezeState"), 0));
+								memcpy(p2.data + 8, &(((PlayerInfo*)(currentPeer->data))->netID), 4);
+								ENetPacket* packet2 = enet_packet_create(p2.data, p2.len, ENET_PACKET_FLAG_RELIABLE);
+								enet_peer_send(currentPeer, 0, packet2);
+								delete p2.data;
+								static_cast<PlayerInfo*>(currentPeer->data)->skinColor = -2104114177;
+								sendClothes(currentPeer);
+
+								Player::OnTextOverlay(currentPeer, "`oYou have been `1unfrozen `oby a mod.");
+								Player::OnConsoleMessage(currentPeer, "`oThere are so icy right i am so cold now!? (`oFrozen mod added! 30 Seconds Left`o)");
+								static_cast<PlayerInfo*>(currentPeer->data)->frozen = false;
+								static_cast<PlayerInfo*>(currentPeer->data)->freezetime = 0;
+							}
+							howmuch++;
+						}
+						catch (const std::out_of_range& e) {
+							std::cout << e.what() << std::endl;
+						}
+					}
+			}
+			Player::OnTextOverlay(peer, "`4" + to_string(howmuch) + " `oplayers were `1frozen`o.");
+		}
+    
+//Dont forget to put freezeall on roles.xaml
